@@ -1,0 +1,32 @@
+name: Build
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build:
+    runs-on: windows-2019
+    env:
+    # 项目名称
+      APP_NAME: ESP-BLE-Demo
+
+    steps:
+
+      # 安装rclone
+      - name: Install rclone
+        run: |
+           choco install rclone -y
+
+      # 将密钥中的rclone配置写入rclone
+      - name: Config rclone
+        run: |
+          mkdir "$env:APPDATA\rclone"
+          copy ${{github.workspace}}\.github\workflows\rclone.conf "$env:APPDATA\rclone"
+      # 上传到一份源码到网盘
+      - name: Upload source code to cloud
+        run: |
+          git archive -o ${{env.APP_NAME}}-${{github.ref_name}}-源码.zip HEAD
+          rclone copy ${{env.APP_NAME}}-${{github.ref_name}}-源码.zip "onedrive:软件/${{env.APP_NAME}}/${{github.ref_name}}"
+
